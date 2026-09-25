@@ -1,0 +1,160 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.brand p {
+  margin: 0;
+  font-size: 12px;
+}
+.logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--lime);
+  font-size: 20px;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Sélecteur « ‹ W38 Sep 21 – Sep 25 › » */
+.period {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+.period strong {
+  font-weight: 700;
+}
+.period.disabled .nav {
+  visibility: hidden;
+}
+.nav {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 18px;
+  line-height: 1;
+}
+.nav:hover:not(:disabled) {
+  background: var(--field);
+}
+.nav:disabled {
+  color: #c9c8c4;
+  cursor: default;
+}
+
+/* Panneau principal et onglets façon « jours de la semaine » */
+.panel {
+  overflow: hidden;
+}
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 96px;
+  padding: 10px 16px 12px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  color: #55555c;
+}
+.tab:hover {
+  background: var(--field);
+}
+.tab-label {
+  font-weight: 600;
+}
+.tab-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+.tab[aria-selected='true'] {
+  background: var(--accent);
+  color: #fff;
+}
+.tab[aria-selected='true'] .tab-hint {
+  color: rgb(255 255 255 / 0.8);
+}
+
+.body {
+  padding: 20px 20px 16px;
+}
+.alert {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fbeae7;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--line);
+  color: #55555c;
+}
+.foot strong {
+  margin-left: 6px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.foot .accent {
+  color: var(--accent-ink);
+}
+.spacer {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .body {
+    padding: 16px 12px;
+  }
+  .tab {
+    min-width: 0;
+    padding: 8px 12px 10px;
+  }
+}

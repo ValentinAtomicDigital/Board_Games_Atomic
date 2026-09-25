@@ -1,0 +1,72 @@
+<main class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🎲</span>
+      <div>
+        <h1>Board Games</h1>
+        <p class="muted">Atomic · les parties du bureau</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="card period" [class.disabled]="mode() === 'all'">
+        <button class="nav" type="button" (click)="shift(-1)" [disabled]="mode() === 'all'" aria-label="Période précédente">‹</button>
+        <strong>{{ period().label }}</strong>
+        <span class="muted">{{ period().sublabel }}</span>
+        <button class="nav" type="button" (click)="shift(1)" [disabled]="mode() === 'all' || isCurrent()" aria-label="Période suivante">›</button>
+      </div>
+
+      <div class="segmented" role="group" aria-label="Période">
+        @for (m of modes; track m.id) {
+          <button type="button" [attr.aria-pressed]="mode() === m.id" (click)="setMode(m.id)">{{ m.label }}</button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <section class="card panel">
+    <nav class="tabs" role="tablist">
+      @for (t of tabs(); track t.id) {
+        <button type="button" role="tab" class="tab" [attr.aria-selected]="tab() === t.id" (click)="tab.set(t.id)">
+          <span class="tab-label">{{ t.label }}</span>
+          <span class="tab-hint">{{ t.hint }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="body" role="tabpanel">
+      @if (store.error(); as error) {
+        <p class="alert" role="alert">{{ error }}</p>
+      }
+
+      @if (store.loading() && !store.players().length) {
+        <p class="empty">Chargement…</p>
+      } @else {
+        @switch (tab()) {
+          @case ('ranking') {
+            <app-leaderboard [matches]="periodMatches()" [periodLabel]="period().label + ' ' + period().sublabel" />
+          }
+          @case ('matches') {
+            <app-matches [matches]="periodMatches()" [periodLabel]="period().label + ' ' + period().sublabel" />
+          }
+          @case ('games') {
+            <app-games />
+          }
+          @case ('players') {
+            <app-players />
+          }
+        }
+      }
+    </div>
+
+    <footer class="foot">
+      <span>Parties <strong>{{ totals().matches }}</strong></span>
+      <span>Joueurs actifs <strong>{{ totals().players }}</strong></span>
+      @if (totals().topGame; as top) {
+        <span>Jeu le plus joué <strong class="accent">{{ top }}</strong></span>
+      }
+      <span class="spacer"></span>
+      <span class="muted">{{ period().label }} {{ period().sublabel }}</span>
+    </footer>
+  </section>
+</main>
