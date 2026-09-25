@@ -5,6 +5,7 @@ import type { Match, Player } from '../data/models';
 import { toneFor } from '../lib/colors';
 import { groupByDepartment } from '../lib/departments';
 import { fitsPlayerCount, playerRange } from '../lib/format';
+import { roleTone } from '../lib/roles';
 import { playsByGame } from '../lib/stats';
 import { toIsoDate } from '../lib/period';
 import { GameChip } from '../ui/game-chip';
@@ -17,9 +18,6 @@ interface Entry {
   role: string | null;
   won: boolean;
 }
-
-/** Couleurs des rôles, dans l'ordre du jeu : Villageois/Gentil, Loup-Garou/Méchant, Solitaire… */
-const ROLE_TONES = ['green', 'pink', 'violet', 'amber', 'blue'] as const;
 
 @Component({
   selector: 'app-matches',
@@ -610,13 +608,11 @@ export class Matches {
     return Object.values(this.seats()).filter((e) => e.role === role).length;
   }
 
-  protected roleTone(index: number): string {
-    return ROLE_TONES[index % ROLE_TONES.length];
-  }
+  protected readonly roleTone = roleTone;
 
   protected roleToneOf(gameId: number, role: string): string {
     const index = this.store.gamesById().get(gameId)?.roles?.indexOf(role) ?? -1;
-    return index < 0 ? 'slate' : this.roleTone(index);
+    return roleTone(index);
   }
 
   /** Ouvre le formulaire sur un jeu ; changer de jeu garde les joueurs déjà cochés. */
