@@ -60,6 +60,14 @@ const DEFAULT_GAME = 'Time Bomb';
         >
           <span class="switch" aria-hidden="true"></span> Par rôle
         </button>
+        <button
+          type="button"
+          class="toggle"
+          [attr.aria-pressed]="splitByRole()"
+          (click)="splitByRole.set(!splitByRole())"
+        >
+          <span class="switch" aria-hidden="true"></span> Victoires par rôle
+        </button>
       }
     </div>
 
@@ -115,16 +123,16 @@ const DEFAULT_GAME = 'Time Bomb';
 
     <div class="players-head">
       <span class="label">Par joueur{{ role() ? ' · en ' + role() : '' }}</span>
-      @if (legend().length) {
-        <div class="legend" aria-hidden="true">
-          @for (r of legend(); track r) {
-            <span class="legend-item" [attr.data-tone]="roleToneOf(r)"
-              ><i></i>Victoire en {{ r }}</span
-            >
-          }
-          <span class="legend-item lost"><i></i>Défaite</span>
-        </div>
-      }
+      <div class="legend" aria-hidden="true">
+        @for (r of legend(); track r) {
+          <span class="legend-item" [attr.data-tone]="roleToneOf(r)"
+            ><i></i>Victoire en {{ r }}</span
+          >
+        } @empty {
+          <span class="legend-item win"><i></i>Victoire</span>
+        }
+        <span class="legend-item lost"><i></i>Défaite</span>
+      </div>
     </div>
     @if (rows().length) {
       <table class="table">
@@ -379,6 +387,9 @@ const DEFAULT_GAME = 'Time Bomb';
       border-radius: 99px;
       background: var(--chip-dot);
     }
+    .legend-item.win i {
+      background: var(--accent);
+    }
     .legend-item.lost i {
       background: #e4e3de;
     }
@@ -413,6 +424,8 @@ export class Leaderboard {
   protected readonly role = signal('');
   protected readonly showDepts = signal(false);
   protected readonly showRoles = signal(false);
+  /** Découpe la part « victoires » de la barre par rôle (Gentil / Méchant…) */
+  protected readonly splitByRole = signal(false);
 
   /** Rôles du jeu choisi, ou de tous les jeux */
   protected readonly roles = computed(() => {
@@ -433,8 +446,11 @@ export class Leaderboard {
   protected readonly depts = computed(() => departmentStats(this.store.players(), this.filtered()));
   protected readonly roleRows = computed(() => roleStats(this.byGame(), this.roles()));
 
-  /** Rôles montrés dans la barre, dans l'ordre du jeu (hors filtre de rôle : un seul segment) */
-  protected readonly legend = computed(() => (this.role() ? [this.role()] : this.roles()));
+  /** Rôles découpés dans la barre ; vide = une seule couleur pour toutes les victoires */
+  protected readonly legend = computed(() => {
+    if (!this.splitByRole()) return [];
+    return this.role() ? [this.role()] : this.roles();
+  });
 
   /** Barre d'un joueur : un segment par rôle gagnant, le reste (fond gris) = défaites */
   protected segments(row: PlayerStats) {
