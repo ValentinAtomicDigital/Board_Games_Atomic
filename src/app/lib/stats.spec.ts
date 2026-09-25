@@ -28,13 +28,32 @@ describe('classement', () => {
     ]);
   });
 
+  it('ventile les victoires par rôle', () => {
+    const m = match(1, 1, [1], [2]);
+    m.bg_match_players[0].role = 'Méchant';
+    const again = match(2, 1, [1], []);
+    again.bg_match_players[0].role = 'Gentil';
+    const alex = leaderboard(players, [m, again, match(3, 2, [1], [])])[0];
+    expect([...alex.winsByRole]).toEqual([
+      ['Méchant', 1],
+      ['Gentil', 1],
+      [null, 1],
+    ]);
+  });
+
   it('départage les égalités de victoires au taux de victoire', () => {
-    const rows = leaderboard(players, [match(1, 1, [2], [1]), match(2, 1, [1], [3]), match(3, 1, [], [1])]);
+    const rows = leaderboard(players, [
+      match(1, 1, [2], [1]),
+      match(2, 1, [1], [3]),
+      match(3, 1, [], [1]),
+    ]);
     expect(rows[0].player.name).toBe('Sam'); // 1/1 devant Alex 1/3
   });
 
   it('ignore les joueurs supprimés', () => {
-    expect(leaderboard(players, [match(1, 1, [99], [1])]).find((r) => r.player.id === 1)?.played).toBe(1);
+    expect(
+      leaderboard(players, [match(1, 1, [99], [1])]).find((r) => r.player.id === 1)?.played,
+    ).toBe(1);
   });
 
   it('compte les parties par jeu', () => {
@@ -65,6 +84,10 @@ describe('classement par département', () => {
   it('liste les départements sans partie en dernier, avec leurs membres', () => {
     const rows = departmentStats(staff, [match(1, 1, [1], [])]);
     expect(rows[0].department.id).toBe('dev');
-    expect(rows.find((r) => r.department.id === '3d')).toMatchObject({ members: 1, played: 0, winRate: 0 });
+    expect(rows.find((r) => r.department.id === '3d')).toMatchObject({
+      members: 1,
+      played: 0,
+      winRate: 0,
+    });
   });
 });

@@ -167,6 +167,7 @@ button {
 [data-tone='green'] { --chip-bg: #e4f5e9; --chip-line: #b1e0bf; --chip-ink: #1b5f35; --chip-dot: #2f9e57; }
 [data-tone='pink'] { --chip-bg: #fde7ee; --chip-line: #f4b6c7; --chip-ink: #962246; --chip-dot: #d63d6b; }
 [data-tone='amber'] { --chip-bg: #fdf1dc; --chip-line: #f1d19a; --chip-ink: #7a4b08; --chip-dot: #d98a12; }
+[data-tone='red'] { --chip-bg: #fdeae8; --chip-line: #f3bab4; --chip-ink: #8f1f17; --chip-dot: #d93a2b; }
 [data-tone='blue'] { --chip-bg: #e5effd; --chip-line: #b5cdf3; --chip-ink: #1f4b8f; --chip-dot: #3b76d6; }
 [data-tone='violet'] { --chip-bg: #efeafb; --chip-line: #d1c3f1; --chip-ink: #54348f; --chip-dot: #7f56d9; }
 

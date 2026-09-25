@@ -3,7 +3,10 @@ import { PercentPipe } from '@angular/common';
 import { BoardGamesStore } from '../data/board-games.store';
 import type { Match } from '../data/models';
 import { allRoles, roleStats, roleToneIn, withRole } from '../lib/roles';
-import { departmentStats, leaderboard } from '../lib/stats';
+import { departmentStats, leaderboard, type PlayerStats } from '../lib/stats';
+
+/** Jeu sélectionné à l'ouverture du classement */
+const DEFAULT_GAME = 'Time Bomb';
 
 @Component({
   selector: 'app-leaderboard',
@@ -110,7 +113,19 @@ import { departmentStats, leaderboard } from '../lib/stats';
       </div>
     }
 
-    <span class="label">Par joueur{{ role() ? ' · en ' + role() : '' }}</span>
+    <div class="players-head">
+      <span class="label">Par joueur{{ role() ? ' · en ' + role() : '' }}</span>
+      @if (legend().length) {
+        <div class="legend" aria-hidden="true">
+          @for (r of legend(); track r) {
+            <span class="legend-item" [attr.data-tone]="roleToneOf(r)"
+              ><i></i>Victoire en {{ r }}</span
+            >
+          }
+          <span class="legend-item lost"><i></i>Défaite</span>
+        </div>
+      }
+    </div>
     @if (rows().length) {
       <table class="table">
         <thead>
@@ -139,7 +154,11 @@ import { departmentStats, leaderboard } from '../lib/stats';
               </td>
               <td class="rate">
                 <div class="rate-cell">
-                  <span class="bar"><span [style.width.%]="row.winRate * 100"></span></span>
+                  <span class="bar split" [title]="barTitle(row)">
+                    @for (seg of segments(row); track seg.role) {
+                      <span [attr.data-tone]="seg.tone" [style.width.%]="seg.pct"></span>
+                    }
+                  </span>
                   <span class="pct">{{ row.played ? (row.winRate | percent) : '—' }}</span>
                 </div>
               </td>
@@ -324,17 +343,56 @@ import { departmentStats, leaderboard } from '../lib/stats';
       border-radius: inherit;
       background: var(--accent);
     }
+    /* Fond gris = défaites */
+    .bar.split {
+      display: flex;
+      gap: 2px;
+      height: 10px;
+      background: #e4e3de;
+    }
+    .bar.split span {
+      border-radius: 0;
+      background: var(--chip-dot, var(--accent));
+    }
+    .players-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 16px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      font-size: 12px;
+      color: #55555c;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-item i {
+      width: 14px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--chip-dot);
+    }
+    .legend-item.lost i {
+      background: #e4e3de;
+    }
     .pct {
       width: 44px;
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
     @media (max-width: 640px) {
-      .bar {
-        display: none;
-      }
       .rate {
         width: auto;
+      }
+      .rate-cell .bar {
+        min-width: 60px;
       }
     }
   `,
@@ -343,7 +401,14 @@ export class Leaderboard {
   protected readonly store = inject(BoardGamesStore);
   readonly matches = input.required<Match[]>();
   readonly periodLabel = input.required<string>();
-  protected readonly gameId = signal(0);
+  /** Jeu choisi par l'utilisateur ; null = jeu par défaut (Time Bomb s'il existe) */
+  private readonly pickedGame = signal<number | null>(null);
+  protected readonly gameId = computed(
+    () =>
+      this.pickedGame() ??
+      this.store.games().find((g) => g.name.toLowerCase() === DEFAULT_GAME.toLowerCase())?.id ??
+      0,
+  );
   /** Rôle filtré ; vide = tous les rôles */
   protected readonly role = signal('');
   protected readonly showDepts = signal(false);
@@ -368,8 +433,37 @@ export class Leaderboard {
   protected readonly depts = computed(() => departmentStats(this.store.players(), this.filtered()));
   protected readonly roleRows = computed(() => roleStats(this.byGame(), this.roles()));
 
+  /** Rôles montrés dans la barre, dans l'ordre du jeu (hors filtre de rôle : un seul segment) */
+  protected readonly legend = computed(() => (this.role() ? [this.role()] : this.roles()));
+
+  /** Barre d'un joueur : un segment par rôle gagnant, le reste (fond gris) = défaites */
+  protected segments(row: PlayerStats) {
+    if (!row.played) return [];
+    const segs = this.legend().map((role) => ({
+      role,
+      tone: this.roleToneOf(role),
+      pct: ((row.winsByRole.get(role) ?? 0) / row.played) * 100,
+    }));
+    // Victoires sans rôle (jeux qui n'en ont pas) : couleur d'accent
+    const other = row.wins - segs.reduce((n, s) => n + (row.winsByRole.get(s.role) ?? 0), 0);
+    if (other > 0) segs.push({ role: '', tone: '', pct: (other / row.played) * 100 });
+    return segs.filter((s) => s.pct > 0);
+  }
+
+  protected barTitle(row: PlayerStats): string {
+    const parts = this.legend()
+      .map((r) => [r, row.winsByRole.get(r) ?? 0] as const)
+      .filter(([, n]) => n)
+      .map(([r, n]) => `${n} victoire${n > 1 ? 's' : ''} en ${r}`);
+    const other = row.wins - this.legend().reduce((n, r) => n + (row.winsByRole.get(r) ?? 0), 0);
+    if (other) parts.push(`${other} victoire${other > 1 ? 's' : ''}`);
+    const lost = row.played - row.wins;
+    if (lost) parts.push(`${lost} défaite${lost > 1 ? 's' : ''}`);
+    return parts.join(' · ');
+  }
+
   protected setGame(gameId: number): void {
-    this.gameId.set(gameId);
+    this.pickedGame.set(gameId);
     if (!this.roles().includes(this.role())) this.role.set('');
   }
 

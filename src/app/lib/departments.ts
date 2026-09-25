@@ -16,7 +16,10 @@ export function departmentOf(id: Department | null) {
 
 /** Regroupe des éléments par département, dans l'ordre de DEPARTMENTS, les « sans département » en dernier. */
 export function groupByDepartment<T>(items: T[], dept: (item: T) => Department | null) {
-  const groups = [...DEPARTMENTS, { id: null, label: 'Sans département', tone: 'slate' as const }].map((d) => ({
+  const groups = [
+    ...DEPARTMENTS,
+    { id: null, label: 'Sans département', tone: 'slate' as const },
+  ].map((d) => ({
     ...d,
     items: items.filter((i) => dept(i) === d.id),
   }));

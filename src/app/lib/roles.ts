@@ -1,15 +1,15 @@
 import type { Game, Match } from '../data/models';
-import type { ChipTone } from './colors';
+import type { Tone } from './colors';
 
-/** Couleurs des rôles, dans l'ordre du jeu : Villageois/Gentil, Loup-Garou/Méchant, Solitaire… */
-const ROLE_TONES: readonly ChipTone[] = ['green', 'pink', 'violet', 'amber', 'blue'];
+/** Couleurs des rôles, dans l'ordre du jeu : bleu pour Gentil/Villageois, rouge pour Méchant/Loup-Garou… */
+const ROLE_TONES: readonly Tone[] = ['blue', 'red', 'violet', 'amber', 'green'];
 
-export function roleTone(index: number): ChipTone {
+export function roleTone(index: number): Tone {
   return index < 0 ? 'slate' : ROLE_TONES[index % ROLE_TONES.length];
 }
 
 /** Couleur d'un rôle d'après sa place dans le premier jeu qui le propose. */
-export function roleToneIn(games: Game[], role: string): ChipTone {
+export function roleToneIn(games: Game[], role: string): Tone {
   for (const g of games) {
     const index = g.roles?.indexOf(role) ?? -1;
     if (index >= 0) return roleTone(index);
