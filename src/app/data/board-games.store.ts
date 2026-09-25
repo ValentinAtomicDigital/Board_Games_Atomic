@@ -25,10 +25,10 @@ export class BoardGamesStore {
     await this.run(async (db) => {
       const [players, games, matches] = await Promise.all([
         db.from('bg_players').select('id, name, department').order('name'),
-        db.from('bg_games').select('id, name, min_players, max_players').order('name'),
+        db.from('bg_games').select('id, name, min_players, max_players, roles').order('name'),
         db
           .from('bg_matches')
-          .select('id, game_id, played_on, notes, bg_match_players(player_id, is_winner)')
+          .select('id, game_id, played_on, notes, bg_match_players(player_id, is_winner, role)')
           .order('played_on', { ascending: false })
           .order('id', { ascending: false }),
       ]);
@@ -52,10 +52,14 @@ export class BoardGamesStore {
     return this.mutate((db) => db.from('bg_players').delete().eq('id', id));
   }
 
-  addGame(name: string, minPlayers: number | null, maxPlayers: number | null) {
+  addGame(name: string, minPlayers: number | null, maxPlayers: number | null, roles: string[] | null) {
     return this.mutate((db) =>
-      db.from('bg_games').insert({ name: name.trim(), min_players: minPlayers, max_players: maxPlayers }),
+      db.from('bg_games').insert({ name: name.trim(), min_players: minPlayers, max_players: maxPlayers, roles }),
     );
+  }
+
+  setRoles(id: number, roles: string[] | null) {
+    return this.mutate((db) => db.from('bg_games').update({ roles }).eq('id', id));
   }
 
   deleteGame(id: number) {
@@ -118,6 +122,6 @@ function describeError(e: unknown): string {
   if (err.code === '42P01' || err.code === 'PGRST205')
     return 'Tables introuvables : lance supabase/001_board_games.sql dans le SQL Editor de Supabase.';
   if (err.code === '42703')
-    return 'Colonne department introuvable : lance supabase/003_player_departments.sql dans le SQL Editor de Supabase.';
+    return `Base pas à jour (${err.message}) : lance les derniers scripts de supabase/ dans le SQL Editor.`;
   return err.message ?? 'Erreur inconnue';
 }

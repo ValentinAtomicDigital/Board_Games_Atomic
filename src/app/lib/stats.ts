@@ -1,4 +1,5 @@
 import type { Match, Player } from '../data/models';
+import { DEPARTMENTS } from './departments';
 
 export interface PlayerStats {
   player: Player;
@@ -39,4 +40,24 @@ export function playsByGame(matches: Match[]): Map<number, number> {
   const counts = new Map<number, number>();
   for (const m of matches) counts.set(m.game_id, (counts.get(m.game_id) ?? 0) + 1);
   return counts;
+}
+
+export interface DepartmentStats {
+  department: (typeof DEPARTMENTS)[number];
+  members: number;
+  /** Participations : une partie à 3 joueurs du même pôle compte 3 fois */
+  played: number;
+  wins: number;
+  winRate: number;
+}
+
+/** Taux de victoire de chaque département, du meilleur au moins bon ; ceux sans partie en dernier. */
+export function departmentStats(players: Player[], matches: Match[]): DepartmentStats[] {
+  const rows = leaderboard(players, matches);
+  return DEPARTMENTS.map((department) => {
+    const members = rows.filter((r) => r.player.department === department.id);
+    const played = members.reduce((n, r) => n + r.played, 0);
+    const wins = members.reduce((n, r) => n + r.wins, 0);
+    return { department, members: members.length, played, wins, winRate: played ? wins / played : 0 };
+  }).sort((a, b) => Number(b.played > 0) - Number(a.played > 0) || b.winRate - a.winRate || b.wins - a.wins);
 }

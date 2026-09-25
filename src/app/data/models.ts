@@ -11,11 +11,14 @@ export interface Game {
   name: string;
   min_players: number | null;
   max_players: number | null;
+  /** Rôles / camps proposés (le premier est le rôle par défaut), null si le jeu n'en a pas */
+  roles: string[] | null;
 }
 
 export interface Participant {
   player_id: number;
   is_winner: boolean;
+  role: string | null;
 }
 
 export interface Match {

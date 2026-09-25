@@ -1,5 +1,5 @@
 import type { Match } from '../data/models';
-import { leaderboard, playsByGame } from './stats';
+import { departmentStats, leaderboard, playsByGame } from './stats';
 
 const players = [
   { id: 1, name: 'Alex', department: null },
@@ -13,8 +13,8 @@ const match = (id: number, gameId: number, winners: number[], losers: number[]):
   played_on: '2026-09-25',
   notes: null,
   bg_match_players: [
-    ...winners.map((player_id) => ({ player_id, is_winner: true })),
-    ...losers.map((player_id) => ({ player_id, is_winner: false })),
+    ...winners.map((player_id) => ({ player_id, is_winner: true, role: null })),
+    ...losers.map((player_id) => ({ player_id, is_winner: false, role: null })),
   ],
 });
 
@@ -43,5 +43,28 @@ describe('classement', () => {
       [1, 2],
       [2, 1],
     ]);
+  });
+});
+
+describe('classement par département', () => {
+  const staff = [
+    { id: 1, name: 'A', department: 'dev' as const },
+    { id: 2, name: 'B', department: 'dev' as const },
+    { id: 3, name: 'C', department: '3d' as const },
+    { id: 4, name: 'D', department: null },
+  ];
+
+  it('additionne les participations des membres et trie par taux de victoire', () => {
+    const rows = departmentStats(staff, [match(1, 1, [3], [1, 2]), match(2, 1, [1], [3, 4])]);
+    expect(rows.slice(0, 2).map((r) => [r.department.id, r.played, r.wins, r.winRate])).toEqual([
+      ['3d', 2, 1, 0.5],
+      ['dev', 3, 1, 1 / 3],
+    ]);
+  });
+
+  it('liste les départements sans partie en dernier, avec leurs membres', () => {
+    const rows = departmentStats(staff, [match(1, 1, [1], [])]);
+    expect(rows[0].department.id).toBe('dev');
+    expect(rows.find((r) => r.department.id === '3d')).toMatchObject({ members: 1, played: 0, winRate: 0 });
   });
 });
